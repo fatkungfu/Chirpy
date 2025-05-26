@@ -3,18 +3,33 @@ package main
 import (
 	"log"
 	"net/http"
+	"sync/atomic"
 )
+
+// apiConfig struct holds any stateful, in-memory data.
+// fileserverHits uses atomic.Int32 for safe concurrent access.
+type apiConfig struct {
+	fileserverHits atomic.Int32 // Uncomment if you want to track hits
+}
 
 func main() {
 	const filepathRoot = "."
 	const port = "8080"
 
+	// Create an instance of apiConfig to hold our state.
+	apiCfg := &apiConfig{
+		fileserverHits: atomic.Int32{}, // Initialize the atomic counter
+	}
+
 	// This will act as our HTTP request router. Since we're not
 	// registering any specific paths, it will default to a 404 for all requests.
 	mux := http.NewServeMux()
-	mux.Handle("/app/", http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))
-	// Use mux.HandleFunc to register the healthzHandler for the /healthz path.
-	mux.HandleFunc("/healthz", healthzHandler)
+	fsHandler := apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))
+	mux.Handle("/app/", fsHandler) // Use middleware to wrap the file server handler
+
+	mux.HandleFunc("GET /healthz", handlerReadiness)      // Use mux.HandleFunc to register the healthzHandler for the /healthz path.
+	mux.HandleFunc("GET /metrics", apiCfg.handlerMetrics) // Register the metrics handler
+	mux.HandleFunc("POST /reset", apiCfg.handlerReset)    // Register the reset handler
 
 	// We'll configure its address and assign our ServeMux as its handler.
 	server := &http.Server{
@@ -26,13 +41,4 @@ func main() {
 	// This will block until the server encounters an error or is shut down.
 	log.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
 	log.Fatal(server.ListenAndServe())
-}
-
-// healthzHandler is a handler for the /healthz endpoint.
-// It returns a 200 OK status with "OK" in the body,
-// indicating that the server is ready to receive traffic.
-func healthzHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)                    // Set the status code to 200 OK
-	w.Write([]byte(http.StatusText(http.StatusOK))) // Write "OK" to the response body
 }
