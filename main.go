@@ -25,11 +25,11 @@ func main() {
 	// registering any specific paths, it will default to a 404 for all requests.
 	mux := http.NewServeMux()
 	fsHandler := apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))
-	mux.Handle("/app/", fsHandler) // Use middleware to wrap the file server handler
-
-	mux.HandleFunc("GET /healthz", handlerReadiness)      // Use mux.HandleFunc to register the healthzHandler for the /healthz path.
-	mux.HandleFunc("GET /metrics", apiCfg.handlerMetrics) // Register the metrics handler
-	mux.HandleFunc("POST /reset", apiCfg.handlerReset)    // Register the reset handler
+	mux.Handle("/app/", fsHandler)                                   // Use middleware to wrap the file server handler
+	mux.HandleFunc("POST /api/validate_chirp", handlerValidateChirp) // Register the validate_chirp handler
+	mux.HandleFunc("GET /healthz", handlerReadiness)                 // Use mux.HandleFunc to register the healthzHandler for the /healthz path.
+	mux.HandleFunc("GET /metrics", apiCfg.handlerMetrics)            // Register the metrics handler
+	mux.HandleFunc("POST /reset", apiCfg.handlerReset)               // Register the reset handler
 
 	// We'll configure its address and assign our ServeMux as its handler.
 	server := &http.Server{
