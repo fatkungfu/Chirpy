@@ -55,14 +55,19 @@ func main() {
 	fsHandler := apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))
 	// Use middleware to wrap the file server handler
 	mux.Handle("/app/", fsHandler)
-	// Register the validate_chirp handler
-	mux.HandleFunc("POST /api/validate_chirp", handlerValidateChirp)
 	// Use mux.HandleFunc to register the healthzHandler for the /healthz path.
 	mux.HandleFunc("GET /healthz", handlerReadiness)
+	// Register the chirps create handler
+	mux.HandleFunc("POST /api/chirps", apiCfg.handlerChirpsCreate)
+	// Register the chirps get by many ID handler
+	mux.HandleFunc("GET /api/chirps", apiCfg.handlerChirpsRetrieve)
+	// Register the chirps get by one ID handler
+	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handlerChirpsGet)
+	// Register the users create handler
+	mux.HandleFunc("POST /api/users", apiCfg.handlerUsersCreate)
 	// Register the metrics handler
 	mux.HandleFunc("GET /metrics", apiCfg.handlerMetrics)
 	// Register the reset handler
-	mux.HandleFunc("POST /api/users", apiCfg.handlerUsersCreate)
 	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
 
 	// We'll configure its address and assign our ServeMux as its handler.
