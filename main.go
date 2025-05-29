@@ -18,6 +18,7 @@ type apiConfig struct {
 	fileserverHits atomic.Int32 // Uncomment if you want to track hits
 	db             *database.Queries
 	platform       string
+	jwtSecret      string
 }
 
 func main() {
@@ -34,7 +35,10 @@ func main() {
 	if platform == "" {
 		log.Fatal("PLATFORM must be set")
 	}
-
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is not set")
+	}
 	// Open a connection to the database using the provided URL.
 	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -47,6 +51,7 @@ func main() {
 		fileserverHits: atomic.Int32{}, // Initialize the atomic counter
 		db:             dbQueries,
 		platform:       platform,
+		jwtSecret:      jwtSecret,
 	}
 
 	// This will act as our HTTP request router. Since we're not
@@ -57,14 +62,17 @@ func main() {
 	mux.Handle("/app/", fsHandler)
 	// Use mux.HandleFunc to register the healthzHandler for the /healthz path.
 	mux.HandleFunc("GET /healthz", handlerReadiness)
+	// Register the users create handler
+	mux.HandleFunc("POST /api/users", apiCfg.handlerUsersCreate)
+	mux.HandleFunc("POST /api/login", apiCfg.handlerLogin)
+	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefresh)
+	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)
 	// Register the chirps create handler
 	mux.HandleFunc("POST /api/chirps", apiCfg.handlerChirpsCreate)
 	// Register the chirps get by many ID handler
 	mux.HandleFunc("GET /api/chirps", apiCfg.handlerChirpsRetrieve)
 	// Register the chirps get by one ID handler
 	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handlerChirpsGet)
-	// Register the users create handler
-	mux.HandleFunc("POST /api/users", apiCfg.handlerUsersCreate)
 	// Register the metrics handler
 	mux.HandleFunc("GET /metrics", apiCfg.handlerMetrics)
 	// Register the reset handler
