@@ -62,21 +62,26 @@ func main() {
 	mux.Handle("/app/", fsHandler)
 	// Use mux.HandleFunc to register the healthzHandler for the /healthz path.
 	mux.HandleFunc("GET /healthz", handlerReadiness)
-	// Register the users create handler
-	mux.HandleFunc("POST /api/users", apiCfg.handlerUsersCreate)
+
 	mux.HandleFunc("POST /api/login", apiCfg.handlerLogin)
 	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefresh)
 	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)
+
+	// Register the users create handler
+	mux.HandleFunc("POST /api/users", apiCfg.handlerUsersCreate)
+	mux.HandleFunc("PUT /api/users", apiCfg.handlerUsersUpdate)
+
 	// Register the chirps create handler
 	mux.HandleFunc("POST /api/chirps", apiCfg.handlerChirpsCreate)
 	// Register the chirps get by many ID handler
 	mux.HandleFunc("GET /api/chirps", apiCfg.handlerChirpsRetrieve)
-	// Register the chirps get by one ID handler
 	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handlerChirpsGet)
-	// Register the metrics handler
-	mux.HandleFunc("GET /metrics", apiCfg.handlerMetrics)
+	mux.HandleFunc("DELETE /api/chirps/{chirpID}", apiCfg.handlerChirpsDelete)
+
 	// Register the reset handler
 	mux.HandleFunc("POST /admin/reset", apiCfg.handlerReset)
+	// Register the metrics handler
+	mux.HandleFunc("GET /metrics", apiCfg.handlerMetrics)
 
 	// We'll configure its address and assign our ServeMux as its handler.
 	server := &http.Server{
