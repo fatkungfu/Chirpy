@@ -7,7 +7,7 @@ A social media platform API built with Go using a guide from boot.dev.
 ### Prerequisites
 
 - Go 1.24 or later
-- PostgreSQL 12 or later
+- PostgreSQL 15 or later
 - [goose](https://github.com/pressly/goose) for database migrations
 - [sqlc](https://sqlc.dev/) for generating Go code from SQL
 
@@ -22,17 +22,13 @@ JWT_SECRET="your-secret-key"
 POLKA_KEY="your-polka-api-key"
 ```
 
-# Chirpy (learn-http-servers)
-
-// ...existing code...
-
 ### Database Setup
 
 1. Install PostgreSQL (if not already installed):
 
 ```sh
-brew install postgresql@14
-brew services start postgresql@14
+brew install postgresql@15
+brew services start postgresql@15
 ```
 
 2. Create a PostgreSQL database named `chirpy`:
