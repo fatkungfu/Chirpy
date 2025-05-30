@@ -26,7 +26,7 @@ func main() {
 	const filepathRoot = "."
 	const port = "8080"
 
-	godotenv.Load()              // Load environment variables from .env file
+	godotenv.Load(".env")        // Load environment variables from .env file
 	dbURL := os.Getenv("DB_URL") // Get the database URL from environment variables
 	if dbURL == "" {
 		log.Fatal("DB_URL must be set")
@@ -34,7 +34,7 @@ func main() {
 	// Get the platform from environment variables
 	platform := os.Getenv("PLATFORM")
 	if platform == "" {
-		log.Fatal("PLATFORM must be set")
+		log.Fatal("ADMIN_KEY environment variable is not set")
 	}
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
