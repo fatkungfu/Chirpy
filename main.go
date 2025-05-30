@@ -19,6 +19,7 @@ type apiConfig struct {
 	db             *database.Queries
 	platform       string
 	jwtSecret      string
+	polkaKey       string
 }
 
 func main() {
@@ -39,6 +40,11 @@ func main() {
 	if jwtSecret == "" {
 		log.Fatal("JWT_SECRET environment variable is not set")
 	}
+	polkaKey := os.Getenv("POLKA_KEY")
+	if polkaKey == "" {
+		log.Fatal("POLKA_KEY environment variable must be set")
+	}
+
 	// Open a connection to the database using the provided URL.
 	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -52,6 +58,7 @@ func main() {
 		db:             dbQueries,
 		platform:       platform,
 		jwtSecret:      jwtSecret,
+		polkaKey:       polkaKey,
 	}
 
 	// This will act as our HTTP request router. Since we're not
@@ -60,8 +67,11 @@ func main() {
 	fsHandler := apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))
 	// Use middleware to wrap the file server handler
 	mux.Handle("/app/", fsHandler)
+
 	// Use mux.HandleFunc to register the healthzHandler for the /healthz path.
 	mux.HandleFunc("GET /healthz", handlerReadiness)
+
+	mux.HandleFunc("POST /api/polka/webhooks", apiCfg.handlerWebhook)
 
 	mux.HandleFunc("POST /api/login", apiCfg.handlerLogin)
 	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefresh)
