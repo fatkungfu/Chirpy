@@ -2,6 +2,60 @@
 
 A social media platform API built with Go using a guide from boot.dev.
 
+## Getting Started
+
+### Prerequisites
+
+- Go 1.24 or later
+- PostgreSQL 15 or later
+- [goose](https://github.com/pressly/goose) for database migrations
+- [sqlc](https://sqlc.dev/) for generating Go code from SQL
+
+### Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```env
+DB_URL="postgres://username:password@localhost:5432/chirpy?sslmode=disable"
+PLATFORM="dev"
+JWT_SECRET="your-secret-key"
+POLKA_KEY="your-polka-api-key"
+```
+
+### Database Setup
+
+1. Install PostgreSQL (if not already installed):
+
+```sh
+brew install postgresql@15
+brew services start postgresql@15
+```
+
+2. Create a PostgreSQL database named `chirpy`:
+
+```sh
+\c chirpy
+```
+
+3. Install database tools:
+
+```sh
+go install github.com/pressly/goose/v3/cmd/goose@latest
+go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+```
+
+4. Set up the database schema:
+
+```sh
+goose -dir sql/schema postgres "postgres://username:password@localhost:5432/chirpy?sslmode=disable" up
+```
+
+5. Generate Go database code:
+
+```sh
+sqlc generate
+```
+
 ## API Endpoints
 
 ### Authentication
@@ -17,6 +71,9 @@ A social media platform API built with Go using a guide from boot.dev.
     "password": "secretpassword"
   }
   ```
+
+````
+
 - **Response** `201`: Returns the created user
   ```json
   {
@@ -172,3 +229,4 @@ The API uses JWT tokens for authentication:
 1. Access tokens are valid for 1 hour
 2. Refresh tokens are valid for 60 days
 3. Include tokens in the Authorization header as `Bearer <token>`
+````
